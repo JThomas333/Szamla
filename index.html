@@ -26,6 +26,9 @@
       padding: 0.5em;
       margin: 0.2em;
     }
+    input {
+      width: 95%;
+    }
     .flex-container {
       display: flex;
       gap: 2em;
@@ -51,7 +54,7 @@
       <h2>Eladók</h2>
       <table id="eladoTable">
         <tr>
-          <th>Név</th><th>Cím</th><th>Adószám</th>
+          <th>Név</th><th>Cím</th><th>Adószám</th><th>Művelet</th>
         </tr>
       </table>
     </div>
@@ -59,7 +62,7 @@
       <h2>Vevők</h2>
       <table id="vevoTable">
         <tr>
-          <th>Név</th><th>Cím</th><th>Adószám</th>
+          <th>Név</th><th>Cím</th><th>Adószám</th><th>Művelet</th>
         </tr>
       </table>
     </div>
@@ -105,9 +108,12 @@
     }
 
     async function stornoSzamla(id) {
-      const res = await fetch(`http://localhost:8080/szamlak/${id}/storno`, { method: "POST" });
+      if (!confirm("Biztosan stornózni szeretnéd a számlát?")) return;
+      const res = await fetch(`http://localhost:8080/szamlak/${id}/storno`, {
+        method: "POST"
+      });
       if (res.ok) {
-        alert("Számla stornózva.");
+        alert("Számla sikeresen stornózva.");
         loadSzamlak();
       } else {
         alert("Hiba történt a stornózás során.");
@@ -127,37 +133,72 @@
     }
 
     async function loadPartnerek() {
-  const res = await fetch("http://localhost:8080/partnerek");
-  const partnerek = await res.json();
+      // Eladók és vevők külön lekérése
+      const eladokRes = await fetch("http://localhost:8080/eladok");
+      const vevokRes = await fetch("http://localhost:8080/vevok");
+      const eladok = await eladokRes.json();
+      const vevok = await vevokRes.json();
 
-  const eladoTable = document.getElementById("eladoTable");
-  const vevoTable = document.getElementById("vevoTable");
+      const eladoTable = document.getElementById("eladoTable");
+      const vevoTable = document.getElementById("vevoTable");
 
-  // Fejlécek megtartása
-  const eladoHeader = eladoTable.rows[0].outerHTML;
-  const vevoHeader = vevoTable.rows[0].outerHTML;
+      // Töröljük a korábbi sorokat (kivéve a fejlécet)
+      while (eladoTable.rows.length > 1) eladoTable.deleteRow(1);
+      while (vevoTable.rows.length > 1) vevoTable.deleteRow(1);
 
-  // Tartalom törlése, de a fejlécet megtartjuk
-  eladoTable.innerHTML = eladoHeader;
-  vevoTable.innerHTML = vevoHeader;
+      eladok.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="text" value="${p.nev}" id="eladoNev${p.id}" /></td>
+          <td><input type="text" value="${p.cim}" id="eladoCim${p.id}" /></td>
+          <td><input type="text" value="${p.adoszam}" id="eladoAdoszam${p.id}" /></td>
+          <td><button onclick="updatePartner(${p.id}, 'elado')">Mentés</button></td>
+        `;
+        eladoTable.appendChild(row);
+      });
 
-  // Feltételezve, hogy id === 1 az eladó (ez tetszőlegesen módosítható)
-  const eladok = partnerek.filter(p => p.id === 1);
-  const vevok = partnerek.filter(p => p.id !== 1);
+      vevok.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="text" value="${p.nev}" id="vevoNev${p.id}" /></td>
+          <td><input type="text" value="${p.cim}" id="vevoCim${p.id}" /></td>
+          <td><input type="text" value="${p.adoszam}" id="vevoAdoszam${p.id}" /></td>
+          <td><button onclick="updatePartner(${p.id}, 'vevo')">Mentés</button></td>
+        `;
+        vevoTable.appendChild(row);
+      });
+    }
 
-  for (const elado of eladok) {
-    const row = document.createElement("tr");
-    row.innerHTML = `<td>${elado.nev}</td><td>${elado.cim}</td><td>${elado.adoszam}</td>`;
-    eladoTable.appendChild(row);
-  }
+    async function updatePartner(id, tipus) {
+      let nev, cim, adoszam;
+      if (tipus === "elado") {
+        nev = document.getElementById(`eladoNev${id}`).value.trim();
+        cim = document.getElementById(`eladoCim${id}`).value.trim();
+        adoszam = document.getElementById(`eladoAdoszam${id}`).value.trim();
+      } else {
+        nev = document.getElementById(`vevoNev${id}`).value.trim();
+        cim = document.getElementById(`vevoCim${id}`).value.trim();
+        adoszam = document.getElementById(`vevoAdoszam${id}`).value.trim();
+      }
 
-  for (const vevo of vevok) {
-    const row = document.createElement("tr");
-    row.innerHTML = `<td>${vevo.nev}</td><td>${vevo.cim}</td><td>${vevo.adoszam}</td>`;
-    vevoTable.appendChild(row);
-  }
-}
+      if (!nev || !cim || !adoszam) {
+        alert("Kérlek tölts ki minden mezőt!");
+        return;
+      }
 
+      const res = await fetch(`http://localhost:8080/partnerek/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nev, cim, adoszam })
+      });
+
+      if (res.ok) {
+        alert("Partner adatai frissítve.");
+        if (isSzamlaVisible) loadSzamlak(); // Frissítjük a számlákat is, hogy látszódjon az új név
+      } else {
+        alert("Hiba történt a frissítés során.");
+      }
+    }
   </script>
 </body>
 </html>

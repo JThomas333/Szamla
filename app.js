@@ -59,14 +59,31 @@ app.get("/partnerek", (req, res) => {
   res.json(partnerek);
 });
 
-// 🔧 ÚJ: Eladók lekérdezése (kiallito_id alapján)
+// ÚJ végpontok az eladók és vevők külön lekéréséhez
 app.get("/eladok", (req, res) => {
-  const eladoIds = db.prepare("SELECT DISTINCT kiallito_id FROM szamlak").all().map(r => r.kiallito_id);
-  if (eladoIds.length === 0) return res.json([]);
-
-  const placeholders = eladoIds.map(() => '?').join(',');
-  const eladok = db.prepare(`SELECT * FROM partners WHERE id IN (${placeholders})`).all(...eladoIds);
+  const eladok = db.getEladok();
   res.json(eladok);
+});
+
+app.get("/vevok", (req, res) => {
+  const vevok = db.getVevok();
+  res.json(vevok);
+});
+
+// ÚJ végpont partnerek frissítéséhez
+app.put("/partnerek/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const { nev, cim, adoszam } = req.body;
+
+  if (!nev || !cim || !adoszam) {
+    return res.status(400).json({ message: "Hiányzó adat" });
+  }
+
+  const partner = db.getAllPartners().find(p => p.id === id);
+  if (!partner) return res.status(404).json({ message: "Partner nem található" });
+
+  db.updatePartner(id, nev, cim, adoszam);
+  res.json({ message: "Partner frissítve" });
 });
 
 app.listen(PORT, () => console.log(`API fut a ${PORT}-as porton.`));

@@ -8,16 +8,8 @@ function createTables() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nev TEXT NOT NULL,
       cim TEXT NOT NULL,
-      adoszam TEXT NOT NULL
-    )
-  `).run();
-
-  db.prepare(`
-    CREATE TABLE IF NOT EXISTS elado (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nev TEXT NOT NULL,
-      cim TEXT NOT NULL,
-      adoszam TEXT NOT NULL
+      adoszam TEXT NOT NULL,
+      tipus TEXT NOT NULL CHECK(tipus IN ('elado', 'vevo'))  -- új oszlop, típus szerint elkülönítjük
     )
   `).run();
 
@@ -41,9 +33,18 @@ function createTables() {
 
 createTables();
 
-// Partner CRUD
+// CRUD PARTNER
 export const getAllPartners = () => db.prepare("SELECT * FROM partners").all();
-export const createPartner = (nev, cim, adoszam) => db.prepare("INSERT INTO partners (nev, cim, adoszam) VALUES (?, ?, ?)").run(nev, cim, adoszam);
+
+// Új lekérdezések, eladók és vevők külön
+export const getEladok = () => db.prepare("SELECT * FROM partners WHERE tipus = 'elado'").all();
+export const getVevok = () => db.prepare("SELECT * FROM partners WHERE tipus = 'vevo'").all();
+
+export const createPartner = (nev, cim, adoszam, tipus) =>
+  db.prepare("INSERT INTO partners (nev, cim, adoszam, tipus) VALUES (?, ?, ?, ?)").run(nev, cim, adoszam, tipus);
+
+export const updatePartner = (id, nev, cim, adoszam) =>
+  db.prepare("UPDATE partners SET nev = ?, cim = ?, adoszam = ? WHERE id = ?").run(nev, cim, adoszam, id);
 
 // Számla CRUD
 export const getAllSzamlak = () => db.prepare(`
@@ -58,10 +59,14 @@ export const getSzamlaById = (id) => db.prepare("SELECT * FROM szamlak WHERE id 
 
 export const createSzamla = (szamlaszam, kiallito_id, vevo_id, kelte, teljesites, hatarido, vegosszeg, afa) =>
   db.prepare(`
-    INSERT INTO szamlak (szamlaszam, kiallito_id, vevo_id, kelte, teljesites, hatarido, vegosszeg, afa) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO szamlak (szamlaszam, kiallito_id, vevo_id, kelte, teljesites, hatarido, vegosszeg, afa)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(szamlaszam, kiallito_id, vevo_id, kelte, teljesites, hatarido, vegosszeg, afa);
 
-export const markSzamlaAsStorno = (id) => db.prepare("UPDATE szamlak SET is_storno = 1 WHERE id = ?").run(id);
+export const markSzamlaAsStorno = (id) =>
+  db.prepare("UPDATE szamlak SET is_storno = 1 WHERE id = ?").run(id);
+
+// Partner törlése, módosítása után a számlák frissítése az új partner adatainak megjelenítéséhez nem kell, mert az join lekérdezés mindig friss adatokat ad
 
 // Feltöltés kezdéshez
 export function resetDatabase() {
@@ -70,19 +75,19 @@ export function resetDatabase() {
   createTables();
 
   const partners = [
-    { nev: "Cég A", cim: "Budapest, Fő utca 1.", adoszam: "12345678-1-12" },
-    { nev: "Cég B", cim: "Pécs, Dózsa u. 12.", adoszam: "23456789-2-45" },
-    { nev: "Cég C", cim: "Szeged, Tavasz u. 9.", adoszam: "34567890-3-78" }
+    { nev: "Sándor", cim: "Budapest", adoszam: "12345678-1-12", tipus: "elado" },
+    { nev: "Lajos", cim: "Pécs", adoszam: "23456789-2-45", tipus: "elado" },
+    { nev: "Noémi", cim: "Szeged", adoszam: "34567890-3-78", tipus: "elado" },
+
+    { nev: "Cég A", cim: "Budapest, Fő utca 1.", adoszam: "12345678-1-12", tipus: "vevo" },
+    { nev: "Cég B", cim: "Pécs, Dózsa u. 12.", adoszam: "23456789-2-45", tipus: "vevo" },
+    { nev: "Cég C", cim: "Szeged, Tavasz u. 9.", adoszam: "34567890-3-78", tipus: "vevo" }
   ];
-  const elado = [
-{ nev: "Sándor", cim: "Budapest", adoszam: "12345678-1-12" },
-    { nev: "Lajos", cim: "Pécs", adoszam: "23456789-2-45" },
-    { nev: "Noémi", cim: "Szeged,", adoszam: "34567890-3-78" }
-  ];
-  const ids = partners.map(p => createPartner(p.nev, p.cim, p.adoszam).lastInsertRowid);
+
+  const ids = partners.map(p => createPartner(p.nev, p.cim, p.adoszam, p.tipus).lastInsertRowid);
 
   for (let i = 0; i < 3; i++) {
-    for (let vevoId = 1; vevoId <= 3; vevoId++) {
+    for (let vevoId = 4; vevoId <= 6; vevoId++) {
       createSzamla(`SZ-2025-00${vevoId}${i}`, 1, vevoId, "2025-05-30", "2025-05-30", "2025-06-15", 100000 + i * 10000, 27000 + i * 2700);
     }
   }
