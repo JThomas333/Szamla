@@ -34,10 +34,10 @@
     }
     
 
-    button[onclick*="toggleSzamlak"] {
+    button[onclick*="Szamlagomb"] {
       background-color: #4a90e2;
     }
-    button[onclick*="togglePartnerek"] {
+    button[onclick*="Partnerekgomb"] {
       background-color: #7b8d93;
     }
     button[onclick*="createNewSzamla"] {
@@ -63,10 +63,8 @@
       display: flex;
       gap: 10px;
     }
-    .half {
-      flex: 1;
-    }
-    #ujSzamlaForm {
+    
+    #ujSzamla {
       max-width: 400px;
       padding: 15px;
       background-color: white;
@@ -74,12 +72,12 @@
       border-radius: 8px;
       font-size: 15px;
     }
-    #ujSzamlaForm label {
+    #ujSzamla label {
       display: block;
       margin-bottom: 6px;
       font-weight: 600;
     }
-    #ujSzamlaForm button {
+    #ujSzamla button {
       width: 100%;
       margin-top: 10px;
     }
@@ -121,11 +119,11 @@
 </head>
 <body>
   <h1>Számlák</h1>
-  <button onclick="toggleSzamlak()">Számlák listázása</button>
+  <button onclick="Szamlagomb()">Számlák listázása</button>
   <div id="szamlaCards" style="display:none;"></div>
 
   <h1>Partnerek</h1>
-  <button onclick="togglePartnerek()">Eladók és vevők megjelenítése</button>
+  <button onclick="Partnerekgomb()">Eladók és vevők megjelenítése</button>
   <div class="flex-container" id="partnerSection" style="display: none;">
     <div class="half">
       <h2>Eladók</h2>
@@ -135,7 +133,7 @@
         </tr>
       </table>
     </div>
-    <div class="half">
+    <div >
       <h2>Vevők</h2>
       <table id="vevoTable">
         <tr>
@@ -146,7 +144,7 @@
   </div>
 
   <h1>Új számla hozzáadása</h1>
-  <div id="ujSzamlaForm">
+  <div id="ujSzamla">
     <label>Számlaszám: <input type="text" id="ujSzamlaszam" /></label>
     <label>Eladó:
       <select id="ujKiallito"></select>
@@ -166,7 +164,7 @@
     let isSzamlaVisible = false;
     let isPartnerVisible = false;
 
-    async function toggleSzamlak() {
+    async function Szamlagomb() {
       const cardsDiv = document.getElementById("szamlaCards");
       if (isSzamlaVisible) {
         cardsDiv.style.display = "none";
@@ -213,7 +211,6 @@
     }
 
     async function stornoSzamla(id) {
-  // Eltávolítva a confirm, így azonnal stornóz
   const res = await fetch(`http://localhost:8080/szamlak/${id}/storno`, {
     method: "POST"
   });
@@ -225,7 +222,7 @@
   }
 }
 
-    async function togglePartnerek() {
+    async function Partnerekgomb() {
       const section = document.getElementById("partnerSection");
       if (isPartnerVisible) {
         section.style.display = "none";
@@ -238,7 +235,6 @@
     }
 
     async function loadPartnerek() {
-      // Eladók és vevők külön lekérése
       const eladokRes = await fetch("http://localhost:8080/eladok");
       const vevokRes = await fetch("http://localhost:8080/vevok");
       const eladok = await eladokRes.json();
@@ -247,7 +243,6 @@
       const eladoTable = document.getElementById("eladoTable");
       const vevoTable = document.getElementById("vevoTable");
 
-      // Töröljük a korábbi sorokat (kivéve a fejlécet)
       while (eladoTable.rows.length > 1) eladoTable.deleteRow(1);
       while (vevoTable.rows.length > 1) vevoTable.deleteRow(1);
 
@@ -276,7 +271,7 @@
 
     async function updatePartner(id, tipus) {
       let nev, cim, adoszam;
-      if (tipus === "elado") {
+      if (tipus == "elado") {
         nev = document.getElementById(`eladoNev${id}`).value.trim();
         cim = document.getElementById(`eladoCim${id}`).value.trim();
         adoszam = document.getElementById(`eladoAdoszam${id}`).value.trim();
@@ -299,7 +294,7 @@
 
       if (res.ok) {
         alert("Partner adatai frissítve.");
-        if (isSzamlaVisible) loadSzamlak(); // Frissítjük a számlákat is, hogy látszódjon az esetleges változás
+        if (isSzamlaVisible) loadSzamlak();
       } else {
         alert("Hiba történt a frissítés során.");
       }
@@ -341,7 +336,6 @@
     alert("Számla sikeresen létrehozva.");
     if (isSzamlaVisible) loadSzamlak();
 
-    // Kitöröljük a mezőket:
     document.getElementById("ujSzamlaszam").value = "";
     document.getElementById("ujKiallito").selectedIndex = 0;
     document.getElementById("ujVevo").selectedIndex = 0;
@@ -383,7 +377,6 @@
       });
     }
 
-    // Oldal betöltéskor betöltjük a partnerlistákat az új számla űrlaphoz
     window.onload = () => {
       loadPartnerSelectBoxes();
     };
