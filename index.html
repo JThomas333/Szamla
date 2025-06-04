@@ -6,64 +6,138 @@
   <style>
     body {
       background: white;
-      padding: 3px;
+      padding: 10px 15px;
+      font-family: Arial, sans-serif;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       background: white;
-      margin-bottom:1px;
+      margin-bottom: 1px;
     }
     th, td {
-      padding: 1px;
+      padding: 6px 8px;
       border: 1px solid gray;
+      text-align: left;
+      font-size: 14px;
     }
     th {
       background: white;
     }
+
     button {
-      padding: 10px;
-      margin: 3px;
+      padding: 10px 15px;
+      margin: 5px 5px 15px 0;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-    input {
+    button:hover {
+      filter: brightness(0.9);
+    }
+    /* Különböző gombok színei */
+    button[onclick*="toggleSzamlak"] {
+      background-color: #4a90e2; /* kékes */
+    }
+    button[onclick*="togglePartnerek"] {
+      background-color: #7b8d93; /* szürkés kék */
+    }
+    button[onclick*="createNewSzamla"] {
+      background-color: #50b948; /* zöld */
+    }
+    button[onclick*="stornoSzamla"] {
+      background-color: #d47a7a; /* visszafogott piros */
+    }
+    button[onclick*="updatePartner"] {
+      background-color: #f39c12; /* narancsos */
+    }
+
+    input, select {
       width: 95%;
+      padding: 6px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-sizing: border-box;
     }
     .flex-container {
       display: flex;
-      gap: 5px;
+      gap: 10px;
     }
     .half {
       flex: 1;
     }
-      #ujSzamlaForm {
-    max-width: 400px;
-    padding: 10px;
-    background-color: white;
-    border: 1px solid gray;
-    border-radius: 5px;
-    font-size: 15px;
-  }
-  #ujSzamlaForm label {
-    display: block;
-    margin-bottom: 3px;
-  }
-  #ujSzamlaForm input, #ujSzamlaForm select {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 3px;
-    font-size: 15px;
-  }
-  
+    #ujSzamlaForm {
+      max-width: 400px;
+      padding: 15px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #ujSzamlaForm label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    #ujSzamlaForm button {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* Számlakártyák megjelenítése */
+    #szamlaCards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .szamlaCard {
+      position: relative;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px 20px 20px 20px;
+      width: 280px;
+      background-color: #fefefe;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+      font-size: 14px;
+      box-sizing: border-box;
+      transition: box-shadow 0.3s ease;
+    }
+    .szamlaCard:hover {
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Számlaszám doboz bal felső sarokban */
+    .szamlaSzamlaszam {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background-color: #4a90e2;
+      color: white;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      user-select: none;
+    }
+
+    /* Stornózott számla kártya háttér */
+    .stornoCard {
+      background-color: #f9d6d6;
+      border-color: #d47a7a;
+    }
   </style>
 </head>
 <body>
   <h1>Számlák</h1>
   <button onclick="toggleSzamlak()">Számlák listázása</button>
-  <table border="1" id="szamlaTable" style="display: none;">
-    <tr>
-      <th>Szám</th><th>Kiállító</th><th>Vevő</th><th>Kelte</th><th>Teljesítés</th><th>Határidő</th><th>Végösszeg</th><th>ÁFA</th><th>Stornózott?</th><th>Művelet</th>
-    </tr>
-  </table>
+  <div id="szamlaCards" style="display:none;"></div>
 
   <h1>Partnerek</h1>
   <button onclick="togglePartnerek()">Eladók és vevők megjelenítése</button>
@@ -87,73 +161,85 @@
   </div>
 
   <h1>Új számla hozzáadása</h1>
-<div id="ujSzamlaForm">
-  <label>Számlaszám: <input type="text" id="ujSzamlaszam" /></label>
-  <label>Eladó:
-    <select id="ujKiallito"></select>
-  </label>
-  <label>Vevő:
-    <select id="ujVevo"></select>
-  </label>
-  <label>Kelte: <input type="date" id="ujKelte" /></label>
-  <label>Teljesítés: <input type="date" id="ujTeljesites" /></label>
-  <label>Határidő: <input type="date" id="ujHatarido" /></label>
-  <label>Végösszeg: <input type="number" id="ujVegosszeg" /></label>
-  <label>ÁFA: <input type="number" id="ujAfa" /></label>
-  <button onclick="createNewSzamla()">Számla létrehozása</button>
-</div>
+  <div id="ujSzamlaForm">
+    <label>Számlaszám: <input type="text" id="ujSzamlaszam" /></label>
+    <label>Eladó:
+      <select id="ujKiallito"></select>
+    </label>
+    <label>Vevő:
+      <select id="ujVevo"></select>
+    </label>
+    <label>Kelte: <input type="date" id="ujKelte" /></label>
+    <label>Teljesítés: <input type="date" id="ujTeljesites" /></label>
+    <label>Határidő: <input type="date" id="ujHatarido" /></label>
+    <label>Végösszeg: <input type="number" id="ujVegosszeg" /></label>
+    <label>ÁFA: <input type="number" id="ujAfa" /></label>
+    <button onclick="createNewSzamla()">Számla létrehozása</button>
+  </div>
 
   <script>
     let isSzamlaVisible = false;
     let isPartnerVisible = false;
 
     async function toggleSzamlak() {
-      const table = document.getElementById("szamlaTable");
+      const cardsDiv = document.getElementById("szamlaCards");
       if (isSzamlaVisible) {
-        table.style.display = "none";
+        cardsDiv.style.display = "none";
         isSzamlaVisible = false;
         return;
       }
       await loadSzamlak();
-      table.style.display = "table";
+      cardsDiv.style.display = "flex";
       isSzamlaVisible = true;
     }
 
     async function loadSzamlak() {
       const res = await fetch("http://localhost:8080/szamlak");
       const szamlak = await res.json();
-      const table = document.getElementById("szamlaTable");
-      while (table.rows.length > 1) table.deleteRow(1);
-      for (const sz of szamlak) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${sz.szamlaszam}</td>
-          <td>${sz.kiallito_nev}</td>
-          <td>${sz.vevo_nev}</td>
-          <td>${sz.kelte}</td>
-          <td>${sz.teljesites}</td>
-          <td>${sz.hatarido}</td>
-          <td>${sz.vegosszeg}</td>
-          <td>${sz.afa}</td>
-          <td>${sz.is_storno ? "Igen" : "Nem"}</td>
-          <td>${sz.is_storno ? "" : `<button onclick="stornoSzamla(${sz.id})">Stornó</button>`}</td>
+      renderSzamlaCards(szamlak);
+    }
+
+    // Új függvény: Számlák megjelenítése kártyákban
+    function renderSzamlaCards(szamlak) {
+      const container = document.getElementById("szamlaCards");
+      container.innerHTML = "";
+
+      szamlak.forEach(sz => {
+        const card = document.createElement("div");
+        card.className = "szamlaCard";
+        if (sz.is_storno) card.classList.add("stornoCard");
+
+        card.innerHTML = `
+          <div class="szamlaSzamlaszam">${sz.szamlaszam}</div>
+          <p><strong>Kiállító:</strong> ${sz.kiallito_nev}</p>
+          <p><strong>Vevő:</strong> ${sz.vevo_nev}</p>
+          <p><strong>Kelte:</strong> ${sz.kelte}</p>
+          <p><strong>Teljesítés:</strong> ${sz.teljesites}</p>
+          <p><strong>Határidő:</strong> ${sz.hatarido}</p>
+          <p><strong>Végösszeg:</strong> ${sz.vegosszeg} Ft</p>
+          <p><strong>ÁFA:</strong> ${sz.afa} %</p>
+          <p><strong>Stornózott?</strong> ${sz.is_storno ? "Igen" : "Nem"}</p>
+          <div>
+            ${sz.is_storno ? "" : `<button onclick="stornoSzamla(${sz.id})">Stornó</button>`}
+          </div>
         `;
-        table.appendChild(row);
-      }
+
+        container.appendChild(card);
+      });
     }
 
     async function stornoSzamla(id) {
-      if (!confirm("Biztosan stornózni szeretnéd a számlát?")) return;
-      const res = await fetch(`http://localhost:8080/szamlak/${id}/storno`, {
-        method: "POST"
-      });
-      if (res.ok) {
-        alert("Számla sikeresen stornózva.");
-        loadSzamlak();
-      } else {
-        alert("Hiba történt a stornózás során.");
-      }
-    }
+  // Eltávolítva a confirm, így azonnal stornóz
+  const res = await fetch(`http://localhost:8080/szamlak/${id}/storno`, {
+    method: "POST"
+  });
+  if (res.ok) {
+    alert("Számla sikeresen stornózva.");
+    loadSzamlak();
+  } else {
+    alert("Hiba történt a stornózás során.");
+  }
+}
 
     async function togglePartnerek() {
       const section = document.getElementById("partnerSection");
@@ -229,67 +315,94 @@
 
       if (res.ok) {
         alert("Partner adatai frissítve.");
-        if (isSzamlaVisible) loadSzamlak(); // Frissítjük a számlákat is, hogy látszódjon az új név
+        if (isSzamlaVisible) loadSzamlak(); // Frissítjük a számlákat is, hogy látszódjon az esetleges változás
       } else {
         alert("Hiba történt a frissítés során.");
       }
     }
+
     async function createNewSzamla() {
   const szamlaszam = document.getElementById("ujSzamlaszam").value.trim();
-  const kiallito_id = document.getElementById("ujKiallito").value;
-  const vevo_id = document.getElementById("ujVevo").value;
+  const kiallitoId = document.getElementById("ujKiallito").value;
+  const vevoId = document.getElementById("ujVevo").value;
   const kelte = document.getElementById("ujKelte").value;
   const teljesites = document.getElementById("ujTeljesites").value;
   const hatarido = document.getElementById("ujHatarido").value;
   const vegosszeg = parseFloat(document.getElementById("ujVegosszeg").value);
   const afa = parseFloat(document.getElementById("ujAfa").value);
 
-  if (!szamlaszam || !kiallito_id || !vevo_id || !kelte || !teljesites || !hatarido || isNaN(vegosszeg) || isNaN(afa)) {
-    alert("Kérlek tölts ki minden mezőt!");
+  if (!szamlaszam || !kiallitoId || !vevoId || !kelte || !teljesites || !hatarido || isNaN(vegosszeg) || isNaN(afa)) {
+    alert("Kérlek tölts ki minden mezőt helyesen!");
     return;
   }
+
+  const ujSzamla = {
+    szamlaszam,
+    kiallito_id: kiallitoId,
+    vevo_id: vevoId,
+    kelte,
+    teljesites,
+    hatarido,
+    vegosszeg,
+    afa
+  };
 
   const res = await fetch("http://localhost:8080/szamlak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      szamlaszam,
-      kiallito_id: parseInt(kiallito_id),
-      vevo_id: parseInt(vevo_id),
-      kelte,
-      teljesites,
-      hatarido,
-      vegosszeg,
-      afa
-    })
+    body: JSON.stringify(ujSzamla)
   });
 
   if (res.ok) {
     alert("Számla sikeresen létrehozva.");
-    document.getElementById("ujSzamlaForm").reset?.();
     if (isSzamlaVisible) loadSzamlak();
+
+    // Kitöröljük a mezőket:
+    document.getElementById("ujSzamlaszam").value = "";
+    document.getElementById("ujKiallito").selectedIndex = 0;
+    document.getElementById("ujVevo").selectedIndex = 0;
+    document.getElementById("ujKelte").value = "";
+    document.getElementById("ujTeljesites").value = "";
+    document.getElementById("ujHatarido").value = "";
+    document.getElementById("ujVegosszeg").value = "";
+    document.getElementById("ujAfa").value = "";
   } else {
-    const err = await res.json();
-    alert("Hiba: " + err.message);
+    alert("Hiba történt a számla létrehozása során.");
   }
 }
 
-// Betölti a legördülő listákhoz a partnereket
-async function loadPartnerOptions() {
-  const eladokRes = await fetch("http://localhost:8080/eladok");
-  const vevokRes = await fetch("http://localhost:8080/vevok");
-  const eladok = await eladokRes.json();
-  const vevok = await vevokRes.json();
 
-  const eladoSelect = document.getElementById("ujKiallito");
-  const vevoSelect = document.getElementById("ujVevo");
+    async function loadPartnerSelectBoxes() {
+      const eladokRes = await fetch("http://localhost:8080/eladok");
+      const vevokRes = await fetch("http://localhost:8080/vevok");
+      const eladok = await eladokRes.json();
+      const vevok = await vevokRes.json();
 
-  eladoSelect.innerHTML = eladok.map(e => `<option value="${e.id}">${e.nev}</option>`).join("");
-  vevoSelect.innerHTML = vevok.map(v => `<option value="${v.id}">${v.nev}</option>`).join("");
-}
+      const kiallitoSelect = document.getElementById("ujKiallito");
+      const vevoSelect = document.getElementById("ujVevo");
 
-// Betöltéskor hívjuk meg
-window.addEventListener("load", loadPartnerOptions);
+      kiallitoSelect.innerHTML = "";
+      vevoSelect.innerHTML = "";
+
+      eladok.forEach(e => {
+        const option = document.createElement("option");
+        option.value = e.id;
+        option.textContent = e.nev;
+        kiallitoSelect.appendChild(option);
+      });
+
+      vevok.forEach(v => {
+        const option = document.createElement("option");
+        option.value = v.id;
+        option.textContent = v.nev;
+        vevoSelect.appendChild(option);
+      });
+    }
+
+    // Oldal betöltéskor betöltjük a partnerlistákat az új számla űrlaphoz
+    window.onload = () => {
+      loadPartnerSelectBoxes();
+    };
   </script>
 </body>
 </html>

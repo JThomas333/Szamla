@@ -1,7 +1,6 @@
 import Database from "better-sqlite3";
 const db = new Database("./data/database.sqlite");
 
-// TÁBLÁK LÉTREHOZÁSA
 function createTables() {
   db.prepare(`
     CREATE TABLE IF NOT EXISTS partners (
