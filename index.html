@@ -68,6 +68,22 @@
     </div>
   </div>
 
+  <h1>Új számla hozzáadása</h1>
+<div id="ujSzamlaForm">
+  <label>Számlaszám: <input type="text" id="ujSzamlaszam" /></label><br />
+  <label>Eladó:
+    <select id="ujKiallito"></select>
+  </label><br />
+  <label>Vevő:
+    <select id="ujVevo"></select>
+  </label><br />
+  <label>Kelte: <input type="date" id="ujKelte" /></label><br />
+  <label>Teljesítés: <input type="date" id="ujTeljesites" /></label><br />
+  <label>Határidő: <input type="date" id="ujHatarido" /></label><br />
+  <label>Végösszeg: <input type="number" id="ujVegosszeg" /></label><br />
+  <label>ÁFA: <input type="number" id="ujAfa" /></label><br />
+  <button onclick="createNewSzamla()">Számla létrehozása</button>
+</div>
   <script>
     let isSzamlaVisible = false;
     let isPartnerVisible = false;
@@ -199,6 +215,62 @@
         alert("Hiba történt a frissítés során.");
       }
     }
+    async function createNewSzamla() {
+  const szamlaszam = document.getElementById("ujSzamlaszam").value.trim();
+  const kiallito_id = document.getElementById("ujKiallito").value;
+  const vevo_id = document.getElementById("ujVevo").value;
+  const kelte = document.getElementById("ujKelte").value;
+  const teljesites = document.getElementById("ujTeljesites").value;
+  const hatarido = document.getElementById("ujHatarido").value;
+  const vegosszeg = parseFloat(document.getElementById("ujVegosszeg").value);
+  const afa = parseFloat(document.getElementById("ujAfa").value);
+
+  if (!szamlaszam || !kiallito_id || !vevo_id || !kelte || !teljesites || !hatarido || isNaN(vegosszeg) || isNaN(afa)) {
+    alert("Kérlek tölts ki minden mezőt!");
+    return;
+  }
+
+  const res = await fetch("http://localhost:8080/szamlak", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      szamlaszam,
+      kiallito_id: parseInt(kiallito_id),
+      vevo_id: parseInt(vevo_id),
+      kelte,
+      teljesites,
+      hatarido,
+      vegosszeg,
+      afa
+    })
+  });
+
+  if (res.ok) {
+    alert("Számla sikeresen létrehozva.");
+    document.getElementById("ujSzamlaForm").reset?.();
+    if (isSzamlaVisible) loadSzamlak();
+  } else {
+    const err = await res.json();
+    alert("Hiba: " + err.message);
+  }
+}
+
+// Betölti a legördülő listákhoz a partnereket
+async function loadPartnerOptions() {
+  const eladokRes = await fetch("http://localhost:8080/eladok");
+  const vevokRes = await fetch("http://localhost:8080/vevok");
+  const eladok = await eladokRes.json();
+  const vevok = await vevokRes.json();
+
+  const eladoSelect = document.getElementById("ujKiallito");
+  const vevoSelect = document.getElementById("ujVevo");
+
+  eladoSelect.innerHTML = eladok.map(e => `<option value="${e.id}">${e.nev}</option>`).join("");
+  vevoSelect.innerHTML = vevok.map(v => `<option value="${v.id}">${v.nev}</option>`).join("");
+}
+
+// Betöltéskor hívjuk meg
+window.addEventListener("load", loadPartnerOptions);
   </script>
 </body>
 </html>
