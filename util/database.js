@@ -74,11 +74,11 @@ export function resetDatabase() {
   createTables();
 
   const partners = [
-    { nev: "Sándor", cim: "Budapest", adoszam: "12345678-1-12", tipus: "elado" },
-    { nev: "Lajos", cim: "Pécs", adoszam: "23456789-2-45", tipus: "elado" },
-    { nev: "Noémi", cim: "Szeged", adoszam: "34567890-3-78", tipus: "elado" },
+    { nev: "Sándor", cim: "Budapest", adoszam: "87654321-2-34", tipus: "elado" },
+    { nev: "Lajos", cim: "Pécs", adoszam: "23426782-3-46", tipus: "elado" },
+    { nev: "Noémi", cim: "Szeged", adoszam: "332537490-4-71", tipus: "elado" },
 
-    { nev: "Axel", cim: "Budapest, Fő utca 1.", adoszam: "12345678-1-12", tipus: "vevo" },
+    { nev: "Patrik", cim: "Budapest, Fő utca 1.", adoszam: "12345678-1-12", tipus: "vevo" },
     { nev: "Balázs", cim: "Pécs, Dózsa u. 12.", adoszam: "23456789-2-45", tipus: "vevo" },
     { nev: "Dóra", cim: "Szeged, Tavasz u. 9.", adoszam: "34567890-3-78", tipus: "vevo" }
   ];

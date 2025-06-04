@@ -5,37 +5,55 @@
   <title>Számlakezelő</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
-      padding: 1em;
+      background: white;
+      padding: 3px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       background: white;
-      margin-bottom: 1em;
+      margin-bottom:1px;
     }
     th, td {
-      padding: 0.5em;
-      border: 1px solid #ccc;
+      padding: 1px;
+      border: 1px solid gray;
     }
     th {
-      background: #eee;
+      background: white;
     }
     button {
-      padding: 0.5em;
-      margin: 0.2em;
+      padding: 10px;
+      margin: 3px;
     }
     input {
       width: 95%;
     }
     .flex-container {
       display: flex;
-      gap: 2em;
+      gap: 5px;
     }
     .half {
       flex: 1;
     }
+      #ujSzamlaForm {
+    max-width: 400px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 5px;
+    font-size: 15px;
+  }
+  #ujSzamlaForm label {
+    display: block;
+    margin-bottom: 3px;
+  }
+  #ujSzamlaForm input, #ujSzamlaForm select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 3px;
+    font-size: 15px;
+  }
+  
   </style>
 </head>
 <body>
@@ -70,20 +88,21 @@
 
   <h1>Új számla hozzáadása</h1>
 <div id="ujSzamlaForm">
-  <label>Számlaszám: <input type="text" id="ujSzamlaszam" /></label><br />
+  <label>Számlaszám: <input type="text" id="ujSzamlaszam" /></label>
   <label>Eladó:
     <select id="ujKiallito"></select>
-  </label><br />
+  </label>
   <label>Vevő:
     <select id="ujVevo"></select>
-  </label><br />
-  <label>Kelte: <input type="date" id="ujKelte" /></label><br />
-  <label>Teljesítés: <input type="date" id="ujTeljesites" /></label><br />
-  <label>Határidő: <input type="date" id="ujHatarido" /></label><br />
-  <label>Végösszeg: <input type="number" id="ujVegosszeg" /></label><br />
-  <label>ÁFA: <input type="number" id="ujAfa" /></label><br />
+  </label>
+  <label>Kelte: <input type="date" id="ujKelte" /></label>
+  <label>Teljesítés: <input type="date" id="ujTeljesites" /></label>
+  <label>Határidő: <input type="date" id="ujHatarido" /></label>
+  <label>Végösszeg: <input type="number" id="ujVegosszeg" /></label>
+  <label>ÁFA: <input type="number" id="ujAfa" /></label>
   <button onclick="createNewSzamla()">Számla létrehozása</button>
 </div>
+
   <script>
     let isSzamlaVisible = false;
     let isPartnerVisible = false;
