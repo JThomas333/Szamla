@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <title>Számlakezelő</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 1em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-bottom: 1em;
+    }
+    th, td {
+      padding: 0.5em;
+      border: 1px solid #ccc;
+    }
+    th {
+      background: #eee;
+    }
+    button {
+      padding: 0.5em;
+      margin: 0.2em;
+    }
+    .flex-container {
+      display: flex;
+      gap: 2em;
+    }
+    .half {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Számlák</h1>
+  <button onclick="toggleSzamlak()">Számlák listázása</button>
+  <table border="1" id="szamlaTable" style="display: none;">
+    <tr>
+      <th>Szám</th><th>Kiállító</th><th>Vevő</th><th>Kelte</th><th>Teljesítés</th><th>Határidő</th><th>Végösszeg</th><th>ÁFA</th><th>Stornózott?</th><th>Művelet</th>
+    </tr>
+  </table>
+
+  <h1>Partnerek</h1>
+  <button onclick="togglePartnerek()">Eladók és vevők megjelenítése</button>
+  <div class="flex-container" id="partnerSection" style="display: none;">
+    <div class="half">
+      <h2>Eladók</h2>
+      <table id="eladoTable">
+        <tr>
+          <th>Név</th><th>Cím</th><th>Adószám</th>
+        </tr>
+      </table>
+    </div>
+    <div class="half">
+      <h2>Vevők</h2>
+      <table id="vevoTable">
+        <tr>
+          <th>Név</th><th>Cím</th><th>Adószám</th>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let isSzamlaVisible = false;
+    let isPartnerVisible = false;
+
+    async function toggleSzamlak() {
+      const table = document.getElementById("szamlaTable");
+      if (isSzamlaVisible) {
+        table.style.display = "none";
+        isSzamlaVisible = false;
+        return;
+      }
+      await loadSzamlak();
+      table.style.display = "table";
+      isSzamlaVisible = true;
+    }
+
+    async function loadSzamlak() {
+      const res = await fetch("http://localhost:8080/szamlak");
+      const szamlak = await res.json();
+      const table = document.getElementById("szamlaTable");
+      while (table.rows.length > 1) table.deleteRow(1);
+      for (const sz of szamlak) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${sz.szamlaszam}</td>
+          <td>${sz.kiallito_nev}</td>
+          <td>${sz.vevo_nev}</td>
+          <td>${sz.kelte}</td>
+          <td>${sz.teljesites}</td>
+          <td>${sz.hatarido}</td>
+          <td>${sz.vegosszeg}</td>
+          <td>${sz.afa}</td>
+          <td>${sz.is_storno ? "Igen" : "Nem"}</td>
+          <td>${sz.is_storno ? "" : `<button onclick="stornoSzamla(${sz.id})">Stornó</button>`}</td>
+        `;
+        table.appendChild(row);
+      }
+    }
+
+    async function stornoSzamla(id) {
+      const res = await fetch(`http://localhost:8080/szamlak/${id}/storno`, { method: "POST" });
+      if (res.ok) {
+        alert("Számla stornózva.");
+        loadSzamlak();
+      } else {
+        alert("Hiba történt a stornózás során.");
+      }
+    }
+
+    async function togglePartnerek() {
+      const section = document.getElementById("partnerSection");
+      if (isPartnerVisible) {
+        section.style.display = "none";
+        isPartnerVisible = false;
+        return;
+      }
+      await loadPartnerek();
+      section.style.display = "flex";
+      isPartnerVisible = true;
+    }
+
+    async function loadPartnerek() {
+  const res = await fetch("http://localhost:8080/partnerek");
+  const partnerek = await res.json();
+
+  const eladoTable = document.getElementById("eladoTable");
+  const vevoTable = document.getElementById("vevoTable");
+
+  // Fejlécek megtartása
+  const eladoHeader = eladoTable.rows[0].outerHTML;
+  const vevoHeader = vevoTable.rows[0].outerHTML;
+
+  // Tartalom törlése, de a fejlécet megtartjuk
+  eladoTable.innerHTML = eladoHeader;
+  vevoTable.innerHTML = vevoHeader;
+
+  // Feltételezve, hogy id === 1 az eladó (ez tetszőlegesen módosítható)
+  const eladok = partnerek.filter(p => p.id === 1);
+  const vevok = partnerek.filter(p => p.id !== 1);
+
+  for (const elado of eladok) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${elado.nev}</td><td>${elado.cim}</td><td>${elado.adoszam}</td>`;
+    eladoTable.appendChild(row);
+  }
+
+  for (const vevo of vevok) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${vevo.nev}</td><td>${vevo.cim}</td><td>${vevo.adoszam}</td>`;
+    vevoTable.appendChild(row);
+  }
+}
+
+  </script>
+</body>
+</html>
