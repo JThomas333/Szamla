@@ -7,7 +7,6 @@
     body {
       background: white;
       padding: 10px 15px;
-      font-family: Arial, sans-serif;
     }
     table {
       width: 100%;
@@ -32,31 +31,27 @@
       border-radius: 4px;
       color: white;
       font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
     }
-    button:hover {
-      filter: brightness(0.9);
-    }
-    /* Különböző gombok színei */
+    
+
     button[onclick*="toggleSzamlak"] {
-      background-color: #4a90e2; /* kékes */
+      background-color: #4a90e2;
     }
     button[onclick*="togglePartnerek"] {
-      background-color: #7b8d93; /* szürkés kék */
+      background-color: #7b8d93;
     }
     button[onclick*="createNewSzamla"] {
-      background-color: #50b948; /* zöld */
+      background-color: #50b948;
     }
     button[onclick*="stornoSzamla"] {
-      background-color: #d47a7a; /* visszafogott piros */
+      background-color: #d47a7a;
     }
     button[onclick*="updatePartner"] {
-      background-color: #f39c12; /* narancsos */
+      background-color: #f39c12;
     }
 
     input, select {
-      width: 95%;
+      width: 100%;
       padding: 6px;
       margin-bottom: 8px;
       font-size: 14px;
@@ -78,7 +73,6 @@
       border: 1px solid #ddd;
       border-radius: 8px;
       font-size: 15px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     #ujSzamlaForm label {
       display: block;
@@ -90,7 +84,6 @@
       margin-top: 10px;
     }
 
-    /* Számlakártyák megjelenítése */
     #szamlaCards {
       display: flex;
       flex-wrap: wrap;
@@ -104,17 +97,11 @@
       padding: 15px 20px 20px 20px;
       width: 280px;
       background-color: #fefefe;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
       font-size: 14px;
       box-sizing: border-box;
-      transition: box-shadow 0.3s ease;
     }
-    .szamlaCard:hover {
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    }
-
-    /* Számlaszám doboz bal felső sarokban */
-    .szamlaSzamlaszam {
+    
+    .szamlaSzam {
       position: absolute;
       top: 8px;
       left: 8px;
@@ -124,10 +111,8 @@
       font-size: 12px;
       padding: 3px 8px;
       border-radius: 4px;
-      user-select: none;
     }
 
-    /* Stornózott számla kártya háttér */
     .stornoCard {
       background-color: #f9d6d6;
       border-color: #d47a7a;
@@ -196,31 +181,30 @@
     async function loadSzamlak() {
       const res = await fetch("http://localhost:8080/szamlak");
       const szamlak = await res.json();
-      renderSzamlaCards(szamlak);
+      loadSzamlaCards(szamlak);
     }
 
-    // Új függvény: Számlák megjelenítése kártyákban
-    function renderSzamlaCards(szamlak) {
+    function loadSzamlaCards(szamlak) {
       const container = document.getElementById("szamlaCards");
       container.innerHTML = "";
 
-      szamlak.forEach(sz => {
+      szamlak.forEach(s => {
         const card = document.createElement("div");
         card.className = "szamlaCard";
-        if (sz.is_storno) card.classList.add("stornoCard");
+        if (s.is_storno) card.classList.add("stornoCard");
 
         card.innerHTML = `
-          <div class="szamlaSzamlaszam">${sz.szamlaszam}</div>
-          <p><strong>Kiállító:</strong> ${sz.kiallito_nev}</p>
-          <p><strong>Vevő:</strong> ${sz.vevo_nev}</p>
-          <p><strong>Kelte:</strong> ${sz.kelte}</p>
-          <p><strong>Teljesítés:</strong> ${sz.teljesites}</p>
-          <p><strong>Határidő:</strong> ${sz.hatarido}</p>
-          <p><strong>Végösszeg:</strong> ${sz.vegosszeg} Ft</p>
-          <p><strong>ÁFA:</strong> ${sz.afa} %</p>
-          <p><strong>Stornózott?</strong> ${sz.is_storno ? "Igen" : "Nem"}</p>
+          <div class="szamlaSzam">${s.szamlaszam}</div>
+          <p><strong>Kiállító:</strong> ${s.kiallito_nev}</p>
+          <p><strong>Vevő:</strong> ${s.vevo_nev}</p>
+          <p><strong>Kelte:</strong> ${s.kelte}</p>
+          <p><strong>Teljesítés:</strong> ${s.teljesites}</p>
+          <p><strong>Határidő:</strong> ${s.hatarido}</p>
+          <p><strong>Végösszeg:</strong> ${s.vegosszeg} Ft</p>
+          <p><strong>ÁFA:</strong> ${s.afa} %</p>
+          <p><strong>Stornózott?</strong> ${s.is_storno ? "Igen" : "Nem"}</p>
           <div>
-            ${sz.is_storno ? "" : `<button onclick="stornoSzamla(${sz.id})">Stornó</button>`}
+            ${s.is_storno ? "" : `<button onclick="stornoSzamla(${s.id})">Stornó</button>`}
           </div>
         `;
 

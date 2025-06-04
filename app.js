@@ -4,7 +4,6 @@ import * as db from "./util/database.js";
 
 const app = express();
 const PORT = 8080;
-
 app.use(cors());
 app.use(express.json());
 
@@ -36,9 +35,12 @@ app.post("/szamlak", (req, res) => {
 app.post("/szamlak/:id/storno", (req, res) => {
   const id = parseInt(req.params.id);
   const szamla = db.getSzamlaById(id);
-  if (!szamla) return res.status(404).json({ message: "Számla nem található" });
+  if (!szamla) {
+      return res.status(404).json({ message: "Számla nem található" });
+    }
+  
 
-  db.markSzamlaAsStorno(id);
+  db.szamlaStorno(id);
   const ujSzamlaszam = szamla.szamlaszam + "-ST";
   const result = db.createSzamla(
     ujSzamlaszam,
@@ -59,7 +61,6 @@ app.get("/partnerek", (req, res) => {
   res.json(partnerek);
 });
 
-// ÚJ végpontok az eladók és vevők külön lekéréséhez
 app.get("/eladok", (req, res) => {
   const eladok = db.getEladok();
   res.json(eladok);
@@ -70,7 +71,6 @@ app.get("/vevok", (req, res) => {
   res.json(vevok);
 });
 
-// ÚJ végpont partnerek frissítéséhez
 app.put("/partnerek/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const { nev, cim, adoszam } = req.body;
@@ -79,8 +79,10 @@ app.put("/partnerek/:id", (req, res) => {
     return res.status(400).json({ message: "Hiányzó adat" });
   }
 
-  const partner = db.getAllPartners().find(p => p.id === id);
-  if (!partner) return res.status(404).json({ message: "Partner nem található" });
+  const partner = db.getAllPartners().find(p => p.id == id);
+  if (!partner){
+return res.status(404).json({ message: "Partner nem található" });
+  } 
 
   db.updatePartner(id, nev, cim, adoszam);
   res.json({ message: "Partner frissítve" });
