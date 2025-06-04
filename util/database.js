@@ -66,7 +66,6 @@ export const createSzamla = (szamlaszam, kiallito_id, vevo_id, kelte, teljesites
 export const markSzamlaAsStorno = (id) =>
   db.prepare("UPDATE szamlak SET is_storno = 1 WHERE id = ?").run(id);
 
-// Partner törlése, módosítása után a számlák frissítése az új partner adatainak megjelenítéséhez nem kell, mert az join lekérdezés mindig friss adatokat ad
 
 // Feltöltés kezdéshez
 export function resetDatabase() {
@@ -79,9 +78,9 @@ export function resetDatabase() {
     { nev: "Lajos", cim: "Pécs", adoszam: "23456789-2-45", tipus: "elado" },
     { nev: "Noémi", cim: "Szeged", adoszam: "34567890-3-78", tipus: "elado" },
 
-    { nev: "Cég A", cim: "Budapest, Fő utca 1.", adoszam: "12345678-1-12", tipus: "vevo" },
-    { nev: "Cég B", cim: "Pécs, Dózsa u. 12.", adoszam: "23456789-2-45", tipus: "vevo" },
-    { nev: "Cég C", cim: "Szeged, Tavasz u. 9.", adoszam: "34567890-3-78", tipus: "vevo" }
+    { nev: "Axel", cim: "Budapest, Fő utca 1.", adoszam: "12345678-1-12", tipus: "vevo" },
+    { nev: "Balázs", cim: "Pécs, Dózsa u. 12.", adoszam: "23456789-2-45", tipus: "vevo" },
+    { nev: "Dóra", cim: "Szeged, Tavasz u. 9.", adoszam: "34567890-3-78", tipus: "vevo" }
   ];
 
   const ids = partners.map(p => createPartner(p.nev, p.cim, p.adoszam, p.tipus).lastInsertRowid);
